@@ -88,6 +88,16 @@ patch("web/src/app/(landing)/demo-video.tsx", "poster={`/video/${name}.jpg`}", "
 patch("web/src/components/url.ts", "new URL(path, window.location.origin).href", "new URL((process.env.NEXT_PUBLIC_BASE_PATH ?? \"\") + path, window.location.origin).href");
 patch("web/src/components/lich/Gate.tsx", "const here = () => window.location.pathname + window.location.search;", "const here = () => (window.location.pathname.replace(process.env.NEXT_PUBLIC_BASE_PATH ?? \"\", \"\") || \"/\") + window.location.search;");
 
+// 8. Tour: usePathname có dấu "/" cuối (trailingSlash) nên so với đường dẫn mong muốn phải bỏ dấu đó, không thì tour tự chuyển trang một lần rồi kẹt.
+patch("web/src/components/lich/Tour.tsx", "if (pathname !== desired &&", "if (pathname.replace(/\\/$/, \"\") !== desired &&");
+// 9. Đăng xuất: client.clear() chạy sau khi trang đăng nhập đã bắt đầu tải /health và /me nên làm chúng kẹt "Đang tải". Chỉ xóa dữ liệu không còn ai xem.
+patch("web/src/components/lich/Gate.tsx", "  client.clear();\n}", "  client.removeQueries({ predicate: (q) => q.getObserversCount() === 0 });\n}");
+
+// 10. Điện thoại: trang ban điều hành là bố cục máy tính (rộng hơn màn), khung chú thích của tour nằm ngoài màn và nút "Tiếp theo" không bấm được,
+// chỉ còn màn đen. Màn hẹp thì không mở tour.
+patch("web/src/components/lich/Tour.tsx", "if (personId && role && role !== \"member\" && !hasSeenTour(storage(), personId)) startTour();", "if (personId && role && role !== \"member\" && !hasSeenTour(storage(), personId) && (window.visualViewport?.width ?? window.innerWidth) >= 700) startTour();");
+patch("web/src/components/lich/Tour.tsx", "if (!open || steps.length === 0) return null;", "if (!open || steps.length === 0 || (window.visualViewport?.width ?? window.innerWidth) < 700) return null;");
+
 // 6. Gói: zod cho mã máy chủ (cài ở source/, nơi cả web/ và server/ cùng tìm thấy).
 const serverPkg = JSON.parse(readFileSync(path.join(main, "server", "package.json"), "utf8"));
 write("package.json", JSON.stringify({ name: "campushub-demo-source", private: true, dependencies: { zod: serverPkg.dependencies.zod } }, null, 2) + "\n");
