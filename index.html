@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CampusHub: demo luồng chính</title>
+<meta name="description" content="Xem lần lượt các bước luồng chính của CampusHub, bộ bàn giao cho ban điều hành CLB sinh viên. Bản demo với dữ liệu mẫu.">
+<style>
+  :root {
+    --ground: #ECEEF2; --paper: #FFFFFF; --ink: #16171C; --ink-2: #3B3F49; --ink-3: #5B606C;
+    --rule: #D5D9E0; --blue: #1D47A3; --blue-hover: #163985; --blue-tint: #E7EDFA;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif; }
+  a, button { font: inherit; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .wrap { width: min(1120px, 100% - 32px); margin: 0 auto; }
+  header.top { background: var(--paper); border-bottom: 1px solid var(--rule); }
+  header.top .wrap { display: flex; align-items: center; gap: 12px; min-height: 60px; }
+  .logo { width: 34px; height: 34px; border-radius: 8px; background: var(--ink); color: #fff; display: grid; place-items: center; font-weight: 800; }
+  .brand { font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+  .tag { margin-left: auto; padding: 4px 12px; border-radius: 999px; background: var(--blue-tint); color: var(--blue); font-size: 13.5px; font-weight: 700; }
+  .intro { padding: 28px 0 8px; }
+  .intro h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 38px); line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
+  .intro p { margin: 0; max-width: 70ch; color: var(--ink-2); font-size: 17px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 14px; }
+  .tab, .chip { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); font-weight: 700; cursor: pointer; }
+  .tab[aria-pressed="true"], .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .chip { min-height: 40px; font-weight: 600; font-size: 15px; }
+  .panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+  .panel-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--rule); }
+  .panel-head h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.01em; }
+  .panel-head p { margin: 0; color: var(--ink-2); }
+  .stage { padding: 18px 20px 8px; background: var(--ground); }
+  .shot { display: grid; place-items: center; }
+  .shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); }
+  .shot.phone img { max-height: 78vh; width: auto; }
+  .caption { margin: 14px auto 0; max-width: 70ch; text-align: center; font-size: 19px; font-weight: 700; line-height: 1.35; min-height: 52px; text-wrap: balance; }
+  .controls { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 20px 18px; background: var(--ground); flex-wrap: wrap; }
+  .btn { min-height: 44px; padding: 0 20px; border-radius: 12px; border: 1px solid var(--blue); background: var(--blue); color: #fff; font-weight: 700; cursor: pointer; }
+  .btn:hover:not(:disabled) { background: var(--blue-hover); border-color: var(--blue-hover); }
+  .btn2 { min-height: 44px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); font-weight: 700; cursor: pointer; }
+  .btn2:hover:not(:disabled) { border-color: var(--ink-3); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .count { min-width: 84px; text-align: center; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .thumbs { display: flex; gap: 8px; padding: 12px 20px; overflow-x: auto; border-top: 1px solid var(--rule); background: var(--paper); }
+  .thumb { flex: 0 0 auto; width: 96px; padding: 0; border: 2px solid transparent; border-radius: 8px; background: none; cursor: pointer; overflow: hidden; }
+  .thumb img { display: block; width: 100%; height: 60px; object-fit: cover; object-position: top left; border-radius: 6px; border: 1px solid var(--rule); }
+  .phone-thumbs .thumb { width: 54px; }
+  .phone-thumbs .thumb img { height: 96px; }
+  .thumb[aria-current="true"] { border-color: var(--blue); }
+  .video { padding: 0 20px 20px; background: var(--paper); }
+  .video summary { cursor: pointer; font-weight: 700; color: var(--blue); min-height: 44px; display: flex; align-items: center; }
+  .video video { display: block; width: 100%; max-height: 80vh; border-radius: 10px; background: #000; margin-top: 8px; }
+  footer { padding: 28px 0 40px; color: var(--ink-3); font-size: 14.5px; }
+  footer p { margin: 0 0 6px; max-width: 80ch; }
+  [hidden] { display: none !important; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 640px) {
+    .stage { padding: 12px 10px 4px; }
+    .caption { font-size: 17px; }
+    .panel-head, .controls, .thumbs, .video { padding-left: 12px; padding-right: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <span class="logo" aria-hidden="true">C</span><span class="brand">CampusHub</span>
+  <span class="tag">Bản demo · dữ liệu mẫu</span>
+</div></header>
+
+<main class="wrap">
+  <section class="intro">
+    <h1>Demo luồng chính của CampusHub</h1>
+    <p>CampusHub là bộ bàn giao cho ban điều hành CLB sinh viên: giao lại biểu mẫu, quy trình, tài khoản và sổ quỹ cho ban mới, kèm điểm danh QR và thu quỹ. Xem lần lượt từng bước bên dưới. Tên người và số liệu là dữ liệu mẫu; CampusHub không giữ tiền và không thu hộ.</p>
+  </section>
+
+  <div class="tabs" role="group" aria-label="Chọn nhóm người dùng" id="tabs"></div>
+  <div class="chips" role="group" aria-label="Chọn phần của luồng" id="chips"></div>
+
+  <section class="panel" aria-labelledby="chapter-title">
+    <div class="panel-head"><h2 id="chapter-title"></h2><p id="chapter-blurb"></p></div>
+    <div class="stage"><div class="shot" id="shot"><img id="img" alt="" decoding="async"></div>
+      <p class="caption" id="caption" aria-live="polite"></p></div>
+    <div class="controls">
+      <button class="btn2" id="prev" type="button">Bước trước</button>
+      <span class="count" id="count"></span>
+      <button class="btn" id="next" type="button">Bước tiếp</button>
+    </div>
+    <div class="thumbs" id="thumbs" role="group" aria-label="Các bước"></div>
+    <details class="video" id="videoBox"><summary>Xem video của phần này</summary><video id="video" controls preload="metadata" playsinline></video></details>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <p>Bấm mũi tên trái, phải trên bàn phím để chuyển bước. Ảnh chụp từ bản chạy thử với dữ liệu mẫu ngày 03/10/2026.</p>
+  <p>Chưa có trong bản này: đăng nhập Google, gửi email và đưa lên mạng. Đây là bản xem trước, không phải sản phẩm hoàn chỉnh.</p>
+</div></footer>
+
+<script>
+const DATA = {
+  "a1": [
+    {
+      "file": "a1-01.jpg",
+      "caption": "Ban điều hành gửi link vào nhóm Zalo. Bấm vào là mở, không cần cài app."
+    },
+    {
+      "file": "a1-02.jpg",
+      "caption": "Bạn tự chọn dữ liệu nào được dùng. Không có ô nào đánh dấu sẵn."
+    },
+    {
+      "file": "a1-03.jpg",
+      "caption": "Vào CLB xong. Dữ liệu của bạn xem, sửa và xóa được."
+    },
+    {
+      "file": "a1-04.jpg",
+      "caption": "Điểm danh xong, có ngay trong lịch sử của bạn."
+    },
+    {
+      "file": "a1-05.jpg",
+      "caption": "Đóng quỹ: tiền chuyển thẳng cho thủ quỹ. Ứng dụng chỉ tạo mã."
+    },
+    {
+      "file": "a1-06.jpg",
+      "caption": "CampusHub: điểm danh, đóng quỹ, việc và tin của CLB trên điện thoại."
+    }
+  ],
+  "b2": [
+    {
+      "file": "b2-01.jpg",
+      "caption": "Việc cần làm: giao việc cho từng người, đặt hạn chót."
+    },
+    {
+      "file": "b2-02.jpg",
+      "caption": "Việc gấp hiện bằng tờ lịch đỏ. Người được giao tự đổi trạng thái."
+    },
+    {
+      "file": "b2-03.jpg",
+      "caption": "QR đổi mã liên tục, nên khó điểm danh hộ."
+    },
+    {
+      "file": "b2-04.jpg",
+      "caption": "Thành viên quét QR, tên hiện lên ngay. Có điểm danh tay khi cần, ghi lại ai điểm danh."
+    }
+  ],
+  "b3": [
+    {
+      "file": "b3-01.jpg",
+      "caption": "Mỗi đợt thu cho từng thành viên một mã chuyển khoản riêng."
+    },
+    {
+      "file": "b3-02.jpg",
+      "caption": "Thủ quỹ thấy ai đã đóng, ai chưa. Tiền đi thẳng vào tài khoản của thủ quỹ."
+    },
+    {
+      "file": "b3-03.jpg",
+      "caption": "Giao dịch khớp thì tự ghi. Dòng nào lệch thì để ở \"Cần gán tay\", thủ quỹ chọn người rồi ghi vào sổ."
+    },
+    {
+      "file": "b3-04.jpg",
+      "caption": "Sổ quỹ chỉ được thêm, không sửa hay xóa. Mọi thao tác đều có lịch sử."
+    }
+  ],
+  "b4": [
+    {
+      "file": "b4-01.jpg",
+      "caption": "Ban điều hành đăng tin của CLB lên Cộng đồng."
+    },
+    {
+      "file": "b4-02.jpg",
+      "caption": "Tin mới chờ nhà trường duyệt, chưa hiện cho mọi người."
+    },
+    {
+      "file": "b4-03.jpg",
+      "caption": "Người đăng thấy tin của mình, mờ đi, kèm nhãn chờ duyệt."
+    },
+    {
+      "file": "b4-04.jpg",
+      "caption": "Nhà trường mở mục Duyệt tin và duyệt."
+    },
+    {
+      "file": "b4-05.jpg",
+      "caption": "Duyệt xong, mọi người đều thấy tin trên Cộng đồng."
+    }
+  ],
+  "b1": [
+    {
+      "file": "b1-01.jpg",
+      "caption": "Đổi ban điều hành: dễ mất file, mất quyền, lệch quỹ."
+    },
+    {
+      "file": "b1-02.jpg",
+      "caption": "CampusHub giúp ban cũ giao lại đầy đủ cho ban mới, theo từng bước."
+    },
+    {
+      "file": "b1-03.jpg",
+      "caption": "Kho bàn giao gom biểu mẫu, quy trình và tài khoản của CLB. Không lưu mật khẩu."
+    },
+    {
+      "file": "b1-04.jpg",
+      "caption": "Quy trình: từng bước làm một việc, ai làm, và biểu mẫu đi kèm."
+    },
+    {
+      "file": "b1-05.jpg",
+      "caption": "Tài khoản: dịch vụ nào, ai giữ quyền quản trị."
+    },
+    {
+      "file": "b1-06.jpg",
+      "caption": "Ban mới có thắc mắc thì hỏi thẳng trợ lý, câu trả lời lấy từ chính kho của CLB."
+    },
+    {
+      "file": "b1-07.jpg",
+      "caption": "Bước 4: đổi tài khoản nhận quỹ sang ban mới."
+    },
+    {
+      "file": "b1-08.jpg",
+      "caption": "Bước 5: chuyển quyền quản trị khỏi email trường của ban cũ."
+    },
+    {
+      "file": "b1-09.jpg",
+      "caption": "Bước 6: ban mới xác nhận đã nhận bàn giao."
+    },
+    {
+      "file": "b1-10.jpg",
+      "caption": "Bước 7: có biên bản bàn giao, xuất Excel bất cứ lúc nào."
+    }
+  ]
+};
+const AUDIENCES = [
+  { key: "bdh", label: "Ban điều hành", phone: false, chapters: ["b1", "b2", "b3", "b4"] },
+  { key: "tv", label: "Thành viên", phone: true, chapters: ["a1"] },
+];
+const CHAPTERS = {
+  b1: { title: "Bàn giao nhiệm kỳ và Kho bàn giao", blurb: "Ban cũ giao lại cho ban mới theo 7 bước. Kho bàn giao giữ biểu mẫu, quy trình và tài khoản của CLB (không lưu mật khẩu).", video: "video/b1-ban-giao-va-kho.mp4" },
+  b2: { title: "Việc cần làm và điểm danh QR", blurb: "Giao việc kèm hạn chót. Điểm danh bằng mã QR đổi liên tục, có điểm danh tay khi cần.", video: "video/b2-viec-va-diem-danh.mp4" },
+  b3: { title: "Thu quỹ và đối soát", blurb: "Mỗi thành viên một mã chuyển khoản riêng. Đối soát bằng file sao kê do thủ quỹ tự tải lên. CampusHub không giữ tiền.", video: "video/b3-thu-quy-doi-soat.mp4" },
+  b4: { title: "Đăng tin lên Cộng đồng", blurb: "Ban điều hành đăng tin của CLB, nhà trường duyệt, tin được duyệt mới hiện cho mọi người.", video: "video/b4-dang-tin-va-duyet.mp4" },
+  a1: { title: "Thành viên dùng trên điện thoại", blurb: "Mở link trong nhóm Zalo, đồng ý dữ liệu, điểm danh bằng QR, đóng quỹ, xem việc và tin của CLB. Không cần cài app.", video: "video/a1-thanh-vien.mp4" },
+};
+const $ = (id) => document.getElementById(id);
+let aud = AUDIENCES[0], chapter = aud.chapters[0], step = 0;
+
+function parseHash() {
+  const m = /^#(bdh|tv)?\/?([ab]\d)?-?(\d+)?$/.exec(location.hash);
+  if (!m) return;
+  const a = AUDIENCES.find((x) => x.key === m[1]);
+  if (a) aud = a;
+  if (m[2] && aud.chapters.includes(m[2])) chapter = m[2]; else chapter = aud.chapters[0];
+  step = Math.max(0, Math.min((DATA[chapter]?.length ?? 1) - 1, (parseInt(m[3] || "1", 10) || 1) - 1));
+}
+function writeHash() { history.replaceState(null, "", `#${aud.key}/${chapter}-${step + 1}`); }
+
+function render() {
+  const shots = DATA[chapter], meta = CHAPTERS[chapter];
+  $("tabs").replaceChildren(...AUDIENCES.map((a) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "tab"; b.textContent = a.label; b.setAttribute("aria-pressed", a === aud);
+    b.onclick = () => { aud = a; chapter = a.chapters[0]; step = 0; render(); }; return b;
+  }));
+  $("chips").replaceChildren(...aud.chapters.map((c) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = CHAPTERS[c].title; b.setAttribute("aria-pressed", c === chapter);
+    b.onclick = () => { chapter = c; step = 0; render(); }; return b;
+  }));
+  $("chips").hidden = aud.chapters.length < 2;
+  $("chapter-title").textContent = meta.title; $("chapter-blurb").textContent = meta.blurb;
+  $("shot").className = "shot" + (aud.phone ? " phone" : "");
+  const s = shots[step];
+  $("img").src = "anh/" + s.file; $("img").alt = `Bước ${step + 1}: ${s.caption}`;
+  $("caption").textContent = s.caption;
+  $("count").textContent = `${step + 1} / ${shots.length}`;
+  $("prev").disabled = step === 0; $("next").disabled = step === shots.length - 1;
+  $("thumbs").className = "thumbs" + (aud.phone ? " phone-thumbs" : "");
+  $("thumbs").replaceChildren(...shots.map((x, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "thumb"; b.setAttribute("aria-label", `Bước ${i + 1}: ${x.caption}`);
+    if (i === step) b.setAttribute("aria-current", "true");
+    const im = document.createElement("img"); im.src = "anh/" + x.file; im.alt = ""; im.loading = "lazy"; b.append(im);
+    b.onclick = () => { step = i; render(); }; return b;
+  }));
+  const v = $("video");
+  if (v.dataset.src !== meta.video) { v.pause(); v.removeAttribute("src"); v.dataset.src = meta.video; $("videoBox").open = false; }
+  document.title = `${meta.title} · CampusHub: demo luồng chính`;
+  writeHash();
+}
+$("prev").onclick = () => { if (step > 0) { step--; render(); } };
+$("next").onclick = () => { if (step < DATA[chapter].length - 1) { step++; render(); } };
+addEventListener("keydown", (e) => {
+  if (e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT|VIDEO)$/.test(e.target.tagName)) return;
+  if (e.key === "ArrowRight") $("next").click(); else if (e.key === "ArrowLeft") $("prev").click();
+});
+addEventListener("hashchange", () => { parseHash(); render(); });
+$("videoBox").addEventListener("toggle", () => { const v = $("video"); if ($("videoBox").open && !v.getAttribute("src")) v.src = v.dataset.src; });
+parseHash(); render();
+</script>
+</body>
+</html>
