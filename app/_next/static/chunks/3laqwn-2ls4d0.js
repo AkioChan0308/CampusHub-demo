@@ -1,0 +1,1 @@
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,53913,(e,o,t)=>{o.exports=e.r(87603)},94695,e=>{"use strict";var o=e.i(30878),t=e.i(53913),i=e.i(63464);e.s(["LandingRedirect",0,function(){let e=(0,t.useRouter)();return(0,o.useEffect)(()=>{(0,i.hasSessionCookie)()&&e.replace("/login?done=1")},[e]),null}])}]);
