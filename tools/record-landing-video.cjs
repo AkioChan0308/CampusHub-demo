@@ -269,15 +269,69 @@ async function recordMember(browser) {
   return encode("member", result, 600);
 }
 
+/** Hai tab: chủ nhiệm cũ (tab 0) và chủ nhiệm mới (tab 1). Cả hai quay cùng lúc, video chỉ hiện tab đang xem (theo lịch chuyển tab). */
+const TAB_H = 90;
+const TABS = [{ name: "Phạm Quốc Bảo", role: "chủ nhiệm cũ", initials: "QB" }, { name: "Nguyễn Minh Anh", role: "chủ nhiệm mới", initials: "MA" }];
+
+function composeTwoTabs(name, ra, rb, events, outWidth) {
+  const end = Math.max(ra.end, rb.end);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `campushub-${name}-`));
+  const out = [];
+  let n = 0;
+  const emit = (frame, t, ev) => {
+    const file = `e${String(n++).padStart(6, "0")}.jpg`;
+    fs.writeFileSync(path.join(dir, file), Buffer.from(frame.data, "base64"));
+    out.push({ file, t, active: ev.active, tabs: ev.tabs });
+  };
+  for (let k = 0; k < events.length; k++) {
+    const ev = events[k];
+    const t1 = k + 1 < events.length ? events[k + 1].t : end;
+    const list = ev.active === 0 ? ra.frames : rb.frames;
+    let i0 = -1;
+    for (let i = 0; i < list.length && list[i].t <= ev.t; i++) i0 = i;
+    if (i0 >= 0) emit(list[i0], ev.t, ev);
+    for (let i = i0 + 1; i < list.length && list[i].t < t1; i++) emit(list[i], list[i].t, ev);
+  }
+  if (out.length < 2) throw new Error(`${name}: không có đủ hình để ghép`);
+  fs.writeFileSync(path.join(dir, "timeline.json"), JSON.stringify({ frames: out, end, tabH: TAB_H, tabs: TABS }));
+  execFileSync("python", [path.join(__dirname, "compose_tabs.py"), dir], { stdio: "inherit" });
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  const mp4 = path.join(OUT_DIR, `${name}.mp4`);
+  execFileSync(FFMPEG, [
+    "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", path.join(dir, "list.txt"),
+    // Khung laptop trên trang đầu có tỉ lệ cố định 1600 x 1000: co hình vừa khung, phần dư tô cùng màu thanh tab.
+    "-vf", `fps=30,scale=${outWidth}:${Math.round(outWidth * 0.625)}:force_original_aspect_ratio=decrease:flags=lanczos,pad=${outWidth}:${Math.round(outWidth * 0.625)}:(ow-iw)/2:(oh-ih)/2:color=0x1B2030,format=yuv420p`,
+    "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-movflags", "+faststart", "-an", mp4,
+  ]);
+  execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-i", mp4, "-frames:v", "1", "-q:v", "3", path.join(OUT_DIR, `${name}.jpg`)]);
+  fs.rmSync(dir, { recursive: true, force: true });
+  const t0 = events[0].t;
+  const steps = Object.fromEntries(Object.entries(ra.marks).map(([k, t]) => [k, Math.max(0, +(t - t0).toFixed(2))]));
+  console.log(`${name}: ${(end - t0).toFixed(1)} giây, ${out.length} ảnh, ${Math.round(fs.statSync(mp4).size / 1024)} KB`);
+  return { duration: +(end - t0).toFixed(2), steps };
+}
+
 async function recordBoard(browser) {
   await prepare(browser);
-  const page = await recordingPage(browser, { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5 }, false);
+  // Khung 1280 x 740 (hình 1920 x 1110) cộng thanh tab 90 = 1920 x 1200, đúng tỉ lệ 16:10 của khung laptop trên trang đầu.
+  const opts = { viewport: { width: 1280, height: 740 }, deviceScaleFactor: 1.5 };
+  const page = await recordingPage(browser, opts, false);      // tab 0: Pham Quoc Bao, chủ nhiệm cũ
+  const pageB = await recordingPage(browser, opts, false);     // tab 1: Nguyen Minh Anh, chủ nhiệm mới
   const a = actor(page, false);
+  const b = actor(pageB, false);
+  // Tab 1 đã đăng nhập sẵn (ngoài video), đang ở Cộng đồng; tới lúc ban cũ chuyển bàn giao thì chuông của tab này tự hiện số.
+  await pageB.goto(BASE + "/login");
+  await api(pageB, "POST", "/auth/dev-login", { personId: "a017" });
+  await pageB.goto(BASE + "/feed");
+  await pageB.waitForSelector("a.l-post", { timeout: 20000 });
   await page.goto(BASE + "/login");
   await page.getByLabel("Tên tài khoản hoặc email").waitFor();
   await page.mouse.move(900, 620);
   await wait(600);
-  const rec = await startRecording(page, 1920, 1200);
+  const rec = await startRecording(page, 1920, 1110);
+  const recB = await startRecording(pageB, 1920, 1110);
+  const events = [{ t: Date.now() / 1000, active: 0, tabs: 1 }];
+  const show = (active, tabs) => events.push({ t: Date.now() / 1000, active, tabs });
   const nav = (label) => page.getByRole("navigation", { name: "Menu ban điều hành" }).locator("a", { hasText: label }).first();
   // Menu gom các mục tiền vào nhóm "Quỹ" (thu gọn sẵn): mở nhóm nếu mục cần bấm chưa hiện.
   const openFunds = async (label) => {
@@ -285,6 +339,7 @@ async function recordBoard(browser) {
     await a.tap(page.getByRole("navigation", { name: "Menu ban điều hành" }).getByRole("button", { name: /Quỹ/ }));
     await nav(label).waitFor();
   };
+
 
   rec.mark("login");
   await wait(500 + BOARD_HOLD);
@@ -359,30 +414,49 @@ async function recordBoard(browser) {
   }
   await a.tap(page.getByRole("button", { name: "Tiếp tục" }));
   await page.getByRole("heading", { name: /Ban mới xác nhận/ }).waitFor();
-  await wait(1600);
-  // Ban mới nhận bàn giao: video chuyển sang máy của chủ nhiệm mới (đăng nhập ngoài khung hình). Chủ nhiệm cũ mất quyền quản trị
-  // ngay khi ban mới xác nhận nên không xem được biên bản trên máy của mình nữa.
-  await api(page, "POST", "/auth/dev-login", { personId: "a017" });
-  await page.goto(`${BASE}/clubs/${CLUB}/handover`);
-  await page.getByRole("heading", { name: /Ban mới xác nhận/ }).waitFor({ timeout: 20000 });
-  await wait(1500);
-  await a.tap(page.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }));
-  await page.locator("#typed-confirm").waitFor();
-  await wait(500);
-  await a.type(page.locator("#typed-confirm"), "BAN GIAO");
-  await wait(700);
-  await a.tap(page.getByRole("button", { name: /^Đổi ban và xác nhận/ }));
-  // exact: tiêu đề "Biên bản bàn giao gồm" ở ô bên phải có sẵn cả lúc trang còn là khung xương, không phải dấu hiệu bước 7 đã mở.
-  await page.getByRole("heading", { name: "Biên bản bàn giao", exact: true }).waitFor({ timeout: 20000 });
-  const exportButton = page.getByRole("button", { name: /Xuất biên bản/ }).first();
-  await exportButton.waitFor({ timeout: 20000 });
   await wait(1800);
-  await a.point(exportButton);
-  await wait(2400 + BOARD_HOLD);
 
-  const result = await rec.stop();
+  // Tab thứ hai hiện ra: chủ nhiệm mới thấy thông báo ngay trong Cộng đồng, không cần ai gọi.
+  show(0, 2);
+  await wait(1100);
+  show(1, 2);
+  await pageB.locator(".l-bell-cnt").waitFor({ timeout: 15000 });
+  await wait(1600);
+  await b.tap(pageB.locator("button.l-bell"));
+  await pageB.locator(".l-notif-item").first().waitFor();
+  await wait(2200);
+  await b.tap(pageB.locator(".l-notif-item").first());
+  await pageB.waitForURL("**/handover");
+  await pageB.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }).waitFor({ timeout: 20000 });
+  await wait(1800);
+  await b.tap(pageB.getByRole("button", { name: "Xác nhận đã nhận bàn giao" }));
+  await pageB.locator("#typed-confirm").waitFor();
+  await wait(600);
+  await b.type(pageB.locator("#typed-confirm"), "BAN GIAO");
+  await wait(800);
+  await b.tap(pageB.getByRole("button", { name: /^Đổi ban và xác nhận/ }));
+  // exact: tiêu đề "Biên bản bàn giao gồm" ở ô bên phải có sẵn cả lúc trang còn là khung xương, không phải dấu hiệu bước 7 đã mở.
+  await pageB.getByRole("heading", { name: "Biên bản bàn giao", exact: true }).waitFor({ timeout: 20000 });
+  await wait(1800);
+
+  // Về tab chủ nhiệm cũ: màn tự chuyển về Của tôi và hộp thông báo tự mở "Bàn giao xong" (không ai bấm gì).
+  show(0, 2);
+  await page.waitForURL("**/me", { timeout: 15000 });
+  await page.locator(".l-notif").waitFor({ timeout: 10000 });
+  await wait(4200);
+
+  // Tab chủ nhiệm mới: đã là chủ nhiệm, menu đủ mục.
+  show(1, 2);
+  await wait(900);
+  await b.tap(pageB.getByRole("navigation", { name: "Menu ban điều hành" }).locator("a", { hasText: "Trang chủ" }).first());
+  await pageB.getByRole("heading", { name: "Cần bạn xử lý" }).waitFor({ timeout: 20000 });
+  await wait(3200);
+
+  const ra = await rec.stop();
+  const rb = await recB.stop();
   await page.context().close();
-  return encode("club-admin", result, 1600);
+  await pageB.context().close();
+  return composeTwoTabs("club-admin", ra, rb, events, 1600);
 }
 
 (async () => {

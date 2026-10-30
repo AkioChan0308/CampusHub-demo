@@ -13,7 +13,8 @@ Mọi thứ chạy trong trình duyệt của người xem:
 
 - Không có máy chủ, không có cơ sở dữ liệu. Dữ liệu mẫu nạp vào `localStorage`, thao tác nào cũng lưu ở đó. Mỗi người xem có một bản riêng, không ai thấy dữ liệu của ai.
 - Đồng hồ của trang đi từ 03/10/2026 (ngày dữ liệu mẫu được viết) để việc và hạn hiện đúng.
-- Đăng nhập bằng 7 tài khoản mẫu (mật khẩu chung nằm ở trang đăng nhập). Không có đăng nhập Google, không gửi email, không gọi AI thật: trợ lý là bản mẫu tính từ dữ liệu của CLB.
+- Đăng nhập bằng 7 tài khoản mẫu (mật khẩu chung nằm ở trang đăng nhập), hoặc bấm "Đăng nhập bằng Google": đó chỉ là **mô phỏng**, hiện hộp chọn một tài khoản mẫu, không kết nối Google thật. Không gửi email, không gọi AI thật: trợ lý là bản mẫu tính từ dữ liệu của CLB.
+- **Phiên đăng nhập riêng từng tab, dữ liệu dùng chung giữa các tab.** Mở hai tab, đăng nhập hai người khác nhau (ví dụ chủ nhiệm cũ `quocbao` và chủ nhiệm mới `minhanh`) rồi làm bàn giao: tab chủ nhiệm mới thấy chuông thông báo, xác nhận xong thì tab chủ nhiệm cũ tự bị đưa ra khỏi ban điều hành và hộp thông báo hiện "Bàn giao xong", như bản thật. Mọi thứ do trình duyệt tự mô phỏng (đọc lại dữ liệu chung mỗi 3 giây), không có máy chủ.
 - Mã QR đóng quỹ không chuyển tiền được.
 - Thứ người xem tạo mới (CLB, buổi, đợt thu, tin, lời mời) lấy id từ một "bể" id đã dựng sẵn trang: 6 CLB, 8 buổi, 8 đợt thu, 24 tin, 40 lời mời. Hết bể thì dữ liệu vẫn lưu nhưng trang riêng của thứ đó không mở được.
 - Xóa dữ liệu trình duyệt hoặc bấm đặt lại dữ liệu mẫu thì về trạng thái ban đầu.

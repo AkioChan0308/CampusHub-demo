@@ -1,5 +1,5 @@
 :HL["/CampusHub-demo/app/_next/static/chunks/3tbjgo38gp9s1.css","style"]
-:HL["/CampusHub-demo/app/_next/static/chunks/35mf0iva17jh_.css","style"]
+:HL["/CampusHub-demo/app/_next/static/chunks/238q6tla9rabu.css","style"]
 :HL["/CampusHub-demo/app/_next/static/media/0595f7052377a1a2.p.2lpos000q_nzo.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/CampusHub-demo/app/_next/static/media/1317291d1835f011.p.1ocfy-u58n01e.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/CampusHub-demo/app/_next/static/media/303804218d80822e.p.3lj349bs9hfu1.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
@@ -14,4 +14,4 @@
 :HL["/CampusHub-demo/app/_next/static/media/e1750518007a189a.p.29e6ydd6osd72.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/CampusHub-demo/app/_next/static/media/e37557cf0085218d.p.2dbbbbabmw4n4.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/CampusHub-demo/app/_next/static/media/f1c5314e24238cfd.p.22gtx64q2ss2-.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"(school-staff)","param":null,"prefetchHints":4192,"slots":{"children":{"name":"school","param":null,"prefetchHints":4192,"slots":{"children":{"name":"clubs","param":null,"prefetchHints":4192,"slots":{"children":{"name":"clubId","param":{"type":"d","key":"clb-n1","siblings":[]},"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}}}}}},"staleTime":300,"buildId":"XGj-9RicSm4UowPLceHod"}
+0:{"tree":{"name":"","param":null,"prefetchHints":4176,"slots":{"children":{"name":"(school-staff)","param":null,"prefetchHints":4192,"slots":{"children":{"name":"school","param":null,"prefetchHints":4192,"slots":{"children":{"name":"clubs","param":null,"prefetchHints":4192,"slots":{"children":{"name":"clubId","param":{"type":"d","key":"clb-n1","siblings":[]},"prefetchHints":4192,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":4256,"slots":null}}}}}}}}}}},"staleTime":300,"buildId":"3Gv_13Z2OoBx5vhO0ji_x"}

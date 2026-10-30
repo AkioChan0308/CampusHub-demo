@@ -8,7 +8,7 @@ export function DemoBadge() {
       role="note"
       style={{ position: "fixed", right: 8, bottom: 8, zIndex: 40, maxWidth: "min(92vw, 320px)", padding: "4px 8px", border: "1px solid var(--l-line, #ccc)", background: "var(--l-paper, #fff)", color: "var(--l-ink-2, #555)", fontSize: 12, lineHeight: 1.3, pointerEvents: "none" }}
     >
-      Bản demo: dữ liệu chỉ lưu trong trình duyệt của bạn.
+      Bản demo: dữ liệu chỉ lưu trong trình duyệt của bạn. Muốn xem hai phía bàn giao: mở thêm một tab và đăng nhập vai khác.
     </div>
   );
 }

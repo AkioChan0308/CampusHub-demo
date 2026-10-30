@@ -98,6 +98,19 @@ patch("web/src/components/lich/Gate.tsx", "  client.clear();\n}", "  client.remo
 patch("web/src/components/lich/Tour.tsx", "if (personId && role && role !== \"member\" && !hasSeenTour(storage(), personId)) startTour();", "if (personId && role && role !== \"member\" && !hasSeenTour(storage(), personId) && (window.visualViewport?.width ?? window.innerWidth) >= 700) startTour();");
 patch("web/src/components/lich/Tour.tsx", "if (!open || steps.length === 0) return null;", "if (!open || steps.length === 0 || (window.visualViewport?.width ?? window.innerWidth) < 700) return null;");
 
+// 11. Đăng nhập Google chỉ mô phỏng: nút mở hộp chọn tài khoản mẫu thay vì đi sang Google.
+patch("web/src/app/(auth)/login/auth-screen.tsx", 'import { useStore } from "@/lib/browser-state";', 'import { useStore } from "@/lib/browser-state";\nimport { GoogleMockButton } from "@/mock/GoogleMock";');
+patch("web/src/app/(auth)/login/auth-screen.tsx",
+  "function GoogleButton({ href, className, children }: { href: string; className: string; children: string }) {\n  const [going, setGoing] = useState(false);\n  return <a className={className} href={href} aria-busy={going || undefined} onClick={() => setGoing(true)}>{children}</a>;\n}",
+  "function GoogleButton({ className, children }: { href: string; className: string; children: string }) {\n  return <GoogleMockButton className={className}>{children}</GoogleMockButton>;\n}");
+patch("web/src/app/(auth)/login/auth-screen.tsx",
+  '<a href={googleHref(withNext("/account?reset=1", next))}>Đặt lại bằng Google</a>',
+  '<a href="#" onClick={(e) => { e.preventDefault(); toast("Bản demo: Google chỉ mô phỏng. Dùng nút Đăng nhập bằng Google ở trên."); }}>Đặt lại bằng Google</a>');
+// 12. Trang đầu: bước Bàn giao của video nay đi hết hai phía (chủ nhiệm cũ và chủ nhiệm mới ở hai tab).
+patch("web/src/app/(landing)/page.tsx",
+  'text: "Chốt số dư, đổi tài khoản nhận quỹ, chuyển quyền cho nhiệm kỳ sau." }',
+  'text: "Chuyển quyền, ban mới xác nhận ở máy của họ, ban cũ tự về thành viên. Hai tab: chủ nhiệm cũ và mới." }');
+
 // 6. Gói: zod cho mã máy chủ (cài ở source/, nơi cả web/ và server/ cùng tìm thấy).
 const serverPkg = JSON.parse(readFileSync(path.join(main, "server", "package.json"), "utf8"));
 write("package.json", JSON.stringify({ name: "campushub-demo-source", private: true, dependencies: { zod: serverPkg.dependencies.zod } }, null, 2) + "\n");

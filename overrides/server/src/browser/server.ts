@@ -29,7 +29,7 @@ z.config(z.locales.vi());
 const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers, ...kitHandlers, ...taskHandlers, ...postHandlers, ...aiHandlers };
 
 const config: Config = {
-  port: 0, authMode: "demo", qrSecret: "chi-dung-cho-ban-demo", webOrigin: "", googleClientId: "", googleClientSecret: "", loginAs: {},
+  port: 0, authMode: "demo", qrSecret: "chi-dung-cho-ban-demo", webOrigin: "", googleClientId: "demo", googleClientSecret: "demo", loginAs: {},
   cookieSecure: false, databaseUrl: "", aiMode: "mock", geminiApiKey: "", aiModel: "", demoNow: undefined, aiDailyCap: 0, aiFreeAsks: 0,
 };
 
