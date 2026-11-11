@@ -106,6 +106,12 @@ patch("web/src/app/(auth)/login/auth-screen.tsx",
 patch("web/src/app/(auth)/login/auth-screen.tsx",
   '<a href={googleHref(withNext("/account?reset=1", next))}>Đặt lại bằng Google</a>',
   '<a href="#" onClick={(e) => { e.preventDefault(); toast("Bản demo: Google chỉ mô phỏng. Dùng nút Đăng nhập bằng Google ở trên."); }}>Đặt lại bằng Google</a>');
+// 13. Ảnh bằng chứng của bàn giao hộ nằm trong localStorage (khoảng 5 MB cho cả trang): bản demo chỉ nhận ảnh tối đa 1 MB để không đầy.
+patch("web/src/lib/actions.ts", "export const EVIDENCE_MAX_BYTES = 5 * 1024 * 1024;", "export const EVIDENCE_MAX_BYTES = 1024 * 1024;");
+patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", "const MAX_PHOTO_BYTES = 5 * 1024 * 1024;", "const MAX_PHOTO_BYTES = 1024 * 1024;");
+patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", 'throw new Error("Mỗi ảnh tối đa 5 MB.");', 'throw new Error("Bản demo chỉ nhận ảnh tối đa 1 MB.");');
+patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", "(JPG, PNG, tối đa 5 MB)", "(JPG, PNG, tối đa 1 MB trong bản demo)");
+
 // 12. Trang đầu: bước Bàn giao của video nay đi hết hai phía (chủ nhiệm cũ và chủ nhiệm mới ở hai tab).
 patch("web/src/app/(landing)/page.tsx",
   'text: "Chốt số dư, đổi tài khoản nhận quỹ, chuyển quyền cho nhiệm kỳ sau." }',

@@ -136,7 +136,7 @@ async function prepare(browser) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await page.goto(BASE + "/login");
-  await api(page, "POST", "/demo/reset");
+  await api(page, "POST", "/demo/reset?clean=1"); // bỏ kịch bản bàn giao hộ có sẵn: video chỉ quay luồng chính
   await ctx.close();
 }
 
@@ -398,6 +398,25 @@ async function recordBoard(browser) {
   rec.mark("handover");
   await a.tap(nav("Bàn giao"));
   await page.waitForURL("**/handover");
+  // Dữ liệu mẫu bắt đầu đợt bàn giao ở bước 1 (từ 09/11/2026): chọn ban mới, chốt số dư, kiểm tra kho rồi mới tới bước 4.
+  await page.getByRole("heading", { name: "Chọn ban mới" }).waitFor();
+  await wait(1000);
+  await page.locator("#handover-president").selectOption("a017");
+  await wait(350);
+  await page.locator("#handover-vice").selectOption("a003");
+  await wait(250);
+  await page.locator("#handover-treasurer").selectOption("a006");
+  await wait(250);
+  await page.locator("#handover-head-1").selectOption("a008"); // ban Chuyên môn
+  await page.locator("#handover-head-2").selectOption("a005"); // ban Hậu cần
+  await wait(500);
+  await a.tap(page.getByRole("button", { name: "Lưu và sang bước 2" }));
+  await page.getByRole("heading", { name: "Chốt số dư" }).waitFor();
+  await wait(900);
+  await a.tap(page.getByRole("button", { name: "Chốt số dư" }));
+  await page.getByRole("heading", { name: "Kiểm tra kho bàn giao" }).waitFor();
+  await wait(1100);
+  await a.tap(page.getByRole("button", { name: /^Đã xem kho|^Tiếp tục|^Sang bước 4/ }).first());
   await page.getByRole("heading", { name: "Đổi tài khoản nhận quỹ" }).waitFor();
   await wait(1200);
   await page.locator("#handover-receiver").selectOption("a006");

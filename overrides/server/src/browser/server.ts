@@ -14,6 +14,7 @@ import { kitHandlers } from "../handlers/kit.ts";
 import { meHandlers } from "../handlers/me.ts";
 import { moneyHandlers } from "../handlers/money.ts";
 import { postHandlers } from "../handlers/posts.ts";
+import { roleHandlers } from "../handlers/roles.ts";
 import { schoolHandlers } from "../handlers/school.ts";
 import { setupHandlers } from "../handlers/setup.ts";
 import { systemHandlers } from "../handlers/system.ts";
@@ -26,7 +27,7 @@ import { cookieJar, readJson, storage } from "./storage.ts";
 
 z.config(z.locales.vi());
 
-const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers, ...kitHandlers, ...taskHandlers, ...postHandlers, ...aiHandlers };
+const handlers: Handlers = { ...systemHandlers, ...authHandlers, ...meHandlers, ...exploreHandlers, ...boardHandlers, ...moneyHandlers, ...schoolHandlers, ...setupHandlers, ...kitHandlers, ...taskHandlers, ...postHandlers, ...aiHandlers, ...roleHandlers };
 
 const config: Config = {
   port: 0, authMode: "demo", qrSecret: "chi-dung-cho-ban-demo", webOrigin: "", googleClientId: "demo", googleClientSecret: "demo", loginAs: {},
