@@ -13,8 +13,19 @@ const PREFIX = "/CampusHub-demo";
 createServer((req, res) => {
   const url = decodeURIComponent((req.url ?? "/").split("?")[0]);
   const send = (file, status = 200) => {
-    res.writeHead(status, { "Content-Type": types[path.extname(file)] ?? "application/octet-stream" });
-    res.end(readFileSync(file));
+    const type = types[path.extname(file)] ?? "application/octet-stream";
+    const body = readFileSync(file);
+    // Pages trả được từng đoạn (Range): thiếu thì video không tua được, bấm một bước của video trang đầu sẽ không nhảy tới đúng chỗ.
+    const range = status === 200 ? /^bytes=(\d*)-(\d*)$/.exec(req.headers.range ?? "") : null;
+    if (range && (range[1] || range[2])) {
+      const start = range[1] ? Number(range[1]) : Math.max(0, body.length - Number(range[2]));
+      const end = range[1] && range[2] ? Math.min(Number(range[2]), body.length - 1) : body.length - 1;
+      if (start > end || start >= body.length) return res.writeHead(416, { "Content-Range": `bytes */${body.length}` }).end();
+      res.writeHead(206, { "Content-Type": type, "Accept-Ranges": "bytes", "Content-Range": `bytes ${start}-${end}/${body.length}`, "Content-Length": end - start + 1 });
+      return res.end(body.subarray(start, end + 1));
+    }
+    res.writeHead(status, { "Content-Type": type, "Accept-Ranges": "bytes", "Content-Length": body.length });
+    res.end(body);
   };
   if (url.startsWith(PREFIX + "/") || url === PREFIX) {
     let file = path.join(root, url.slice(PREFIX.length));
