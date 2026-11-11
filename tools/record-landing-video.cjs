@@ -21,6 +21,8 @@ const MAIN_WEB = process.env.MAIN_WEB || path.join(__dirname, "..", "..", "campu
 const { BASE, launch } = require(path.join(MAIN_WEB, "e2e", "common.cjs"));
 
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
+/** Bộ mã hóa video. Mặc định libx264; ffmpeg không có libx264 (ví dụ bản của CapCut) thì đặt FFMPEG_VCODEC="-c:v h264_mf -b:v 4M". */
+const VIDEO_CODEC = process.env.FFMPEG_VCODEC ? process.env.FFMPEG_VCODEC.split(" ") : ["-c:v", "libx264", "-preset", "slow", "-crf", "24"];
 // Bản của repo demo: ghi vào overrides/web/ (sync.mjs chép đè lên mã nguồn), không đụng repo CampusHub chính.
 const ROOT = path.join(__dirname, "..", "overrides", "web");
 const OUT_DIR = path.join(ROOT, "public", "video");
@@ -120,7 +122,7 @@ function encode(name, rec, outWidth) {
   execFileSync(FFMPEG, [
     "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", path.join(dir, "list.txt"),
     "-vf", `fps=30,scale=${outWidth}:-2:flags=lanczos,format=yuv420p`,
-    "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-movflags", "+faststart", "-an", mp4,
+    ...VIDEO_CODEC, "-movflags", "+faststart", "-an", mp4,
   ]);
   // Ảnh đầu video = hình đầu tiên, để lúc video bắt đầu chạy không bị đổi hình.
   execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-i", mp4, "-frames:v", "1", "-q:v", "3", path.join(OUT_DIR, `${name}.jpg`)]);
@@ -301,7 +303,7 @@ function composeTwoTabs(name, ra, rb, events, outWidth) {
     "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", path.join(dir, "list.txt"),
     // Khung laptop trên trang đầu có tỉ lệ cố định 1600 x 1000: co hình vừa khung, phần dư tô cùng màu thanh tab.
     "-vf", `fps=30,scale=${outWidth}:${Math.round(outWidth * 0.625)}:force_original_aspect_ratio=decrease:flags=lanczos,pad=${outWidth}:${Math.round(outWidth * 0.625)}:(ow-iw)/2:(oh-ih)/2:color=0x1B2030,format=yuv420p`,
-    "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-movflags", "+faststart", "-an", mp4,
+    ...VIDEO_CODEC, "-movflags", "+faststart", "-an", mp4,
   ]);
   execFileSync(FFMPEG, ["-y", "-loglevel", "error", "-i", mp4, "-frames:v", "1", "-q:v", "3", path.join(OUT_DIR, `${name}.jpg`)]);
   fs.rmSync(dir, { recursive: true, force: true });

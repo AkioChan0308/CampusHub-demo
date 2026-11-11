@@ -114,8 +114,8 @@ patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", "(JPG, 
 
 // 12. Trang đầu: bước Bàn giao của video nay đi hết hai phía (chủ nhiệm cũ và chủ nhiệm mới ở hai tab).
 patch("web/src/app/(landing)/page.tsx",
-  'text: "Chốt số dư, đổi tài khoản nhận quỹ, chuyển quyền cho nhiệm kỳ sau." }',
-  'text: "Chuyển quyền, ban mới xác nhận ở máy của họ, ban cũ tự về thành viên. Hai tab: chủ nhiệm cũ và mới." }');
+  'text: "Chọn ban mới, chốt số dư, kiểm tra kho, rồi chuyển quyền cho nhiệm kỳ sau." }',
+  'text: "Chọn ban mới, chuyển quyền, ban mới xác nhận ở máy của họ, ban cũ tự về thành viên. Hai tab: chủ nhiệm cũ và mới." }');
 
 // 6. Gói: zod cho mã máy chủ (cài ở source/, nơi cả web/ và server/ cùng tìm thấy).
 const serverPkg = JSON.parse(readFileSync(path.join(main, "server", "package.json"), "utf8"));
