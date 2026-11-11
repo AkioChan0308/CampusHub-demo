@@ -10,13 +10,14 @@
     }
   },
   "club-admin": {
-    "duration": 75.44,
+    "duration": 127.9,
     "steps": {
       "login": 0,
-      "check-in": 7.25,
-      "reconcile": 18,
-      "expenses": 23.64,
-      "handover": 29.3
+      "check-in": 7.01,
+      "reconcile": 17.84,
+      "expenses": 23.3,
+      "role": 28.89,
+      "handover": 81.53
     }
   }
 }

@@ -112,7 +112,10 @@ patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", "const 
 patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", 'throw new Error("Mỗi ảnh tối đa 5 MB.");', 'throw new Error("Bản demo chỉ nhận ảnh tối đa 1 MB.");');
 patch("web/src/app/(club-admin)/clubs/[clubId]/handover/roles/page.tsx", "(JPG, PNG, tối đa 5 MB)", "(JPG, PNG, tối đa 1 MB trong bản demo)");
 
-// 12. Trang đầu: bước Bàn giao của video nay đi hết hai phía (chủ nhiệm cũ và chủ nhiệm mới ở hai tab).
+// 12. Trang đầu: hai bước bàn giao của video đi hết các phía (nhiều tab: chủ nhiệm cũ, trưởng ban, người nhận vai, chủ nhiệm mới).
+patch("web/src/app/(landing)/page.tsx",
+  'text: "Trưởng ban tự bàn giao vai của mình: gửi đơn, chủ nhiệm duyệt, người nhận xác nhận." }',
+  'text: "Trưởng ban gửi đơn, chủ nhiệm duyệt, người nhận xác nhận ở máy của họ. Mỗi người một tab." }');
 patch("web/src/app/(landing)/page.tsx",
   'text: "Chọn ban mới, chốt số dư, kiểm tra kho, rồi chuyển quyền cho nhiệm kỳ sau." }',
   'text: "Chọn ban mới, chuyển quyền, ban mới xác nhận ở máy của họ, ban cũ tự về thành viên. Hai tab: chủ nhiệm cũ và mới." }');

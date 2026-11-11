@@ -1,6 +1,7 @@
-"""Ghép khung hình của hai tab thành một video: vẽ thanh tab ở trên (tab đang xem sáng, tab kia tối) rồi ghi danh sách ảnh cho ffmpeg.
+"""Ghép khung hình của nhiều tab thành một video: vẽ thanh tab ở trên (tab đang xem sáng, các tab khác tối) rồi ghi danh sách ảnh cho ffmpeg.
 Dùng bởi tools/record-landing-video.cjs. Chạy: python compose_tabs.py <thư mục có timeline.json>
-Vào: timeline.json {frames:[{file,t,active,tabs}], end, tabH, tabs:[{name,role,initials}]}. Ra: c<số>.jpg và list.txt (ffconcat)."""
+Vào: timeline.json {frames:[{file,t,active,tabs}], end, tabH, tabs:[{name,role,initials}]}. `tabs` của từng khung là danh sách số thứ tự
+(trong `tabs` của timeline) các tab đang hiện trên thanh, theo thứ tự vẽ; `active` là số thứ tự của tab đang xem. Ra: c<số>.jpg và list.txt (ffconcat)."""
 import io
 import json
 import os
@@ -20,30 +21,45 @@ def font(bold, size):
     return ImageFont.load_default()
 
 
-F_NAME, F_ROLE, F_INI = font(True, 27), font(False, 25), font(True, 19)
 cache = {}
+fonts = {}
+
+
+def fonts_for(k):
+    """Cỡ chữ theo hệ số co k của tab (k = 1 khi tab rộng 600)."""
+    key = round(k, 2)
+    if key not in fonts:
+        fonts[key] = (font(True, max(10, round(27 * k))), font(False, max(10, round(25 * k))), font(True, max(8, round(19 * k))))
+    return fonts[key]
 
 
 def bar(width, active, tabs):
-    key = (active, tabs)
+    key = (active, tuple(tabs))
     if key in cache:
         return cache[key]
     im = Image.new("RGB", (width, tab_h), (27, 32, 48))
     dr = ImageDraw.Draw(im)
-    x = 24
-    for i in range(tabs):
+    gap, margin = 8, 24
+    # Mỗi tab rộng tối đa 600; nhiều tab thì co lại cho vừa chiều rộng khung, chữ co theo.
+    w = min(600, (width - 2 * margin - gap * (len(tabs) - 1)) // len(tabs))
+    k = w / 600
+    f_name, f_role, f_ini = fonts_for(k)
+    x = margin
+    for i in tabs:
         t = tl["tabs"][i]
         on = i == active
-        w, top = 600, 20
+        top = 20
         dr.rounded_rectangle((x, top, x + w, tab_h + 20), radius=18, fill=(245, 247, 249) if on else (42, 49, 68))
         cy = top + (tab_h - top) // 2
-        dr.ellipse((x + 18, cy - 21, x + 60, cy + 21), fill=(29, 71, 163))
-        iw = dr.textlength(t["initials"], font=F_INI)
-        dr.text((x + 39 - iw / 2, cy - 12), t["initials"], font=F_INI, fill=(255, 255, 255))
-        dr.text((x + 76, cy - 18), t["name"], font=F_NAME, fill=(22, 24, 29) if on else (214, 219, 227))
-        nw = dr.textlength(t["name"], font=F_NAME)
-        dr.text((x + 76 + nw + 12, cy - 16), "· " + t["role"], font=F_ROLE, fill=(93, 101, 112) if on else (150, 158, 171))
-        x += w + 8
+        r = round(21 * k)
+        dr.ellipse((x + round(39 * k) - r, cy - r, x + round(39 * k) + r, cy + r), fill=(29, 71, 163))
+        iw = dr.textlength(t["initials"], font=f_ini)
+        dr.text((x + round(39 * k) - iw / 2, cy - round(12 * k)), t["initials"], font=f_ini, fill=(255, 255, 255))
+        tx = x + round(76 * k)
+        dr.text((tx, cy - round(18 * k)), t["name"], font=f_name, fill=(22, 24, 29) if on else (214, 219, 227))
+        nw = dr.textlength(t["name"], font=f_name)
+        dr.text((tx + nw + round(12 * k), cy - round(16 * k)), "· " + t["role"], font=f_role, fill=(93, 101, 112) if on else (150, 158, 171))
+        x += w + gap
     cache[key] = im
     return im
 
